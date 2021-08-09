@@ -1,3 +1,4 @@
+from discord.flags import Intents
 import pyvcroid2
 from discord.ext import commands
 
@@ -29,11 +30,20 @@ def main():
     vc.param.masterVolume = 1.0
 
     token = private.token
-    bot = commands.Bot(command_prefix=commands.when_mentioned_or("."))
+
+    # to enumerate members field.
+    # see reference: https://stackoverflow.com/questions/64831017/how-do-i-get-the-discord-py-intents-to-work
+    intents = Intents.default()
+    intents.members = True
+
+    bot = commands.Bot(command_prefix=commands.when_mentioned_or("."), Intents=intents)
 
     @bot.event
     async def on_ready():
-        print("ready")
+        print("logged in as")
+        print(bot.user.name)
+        print(bot.user.id)
+        print("")
 
     bot.add_cog(VoiceroidTTSBot(bot, vc))
     bot.run(token)

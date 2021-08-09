@@ -11,38 +11,62 @@ class VoiceroidTTSBot(commands.Cog):
     def __init__(self, bot, vc):
         self.bot: commands.Bot = bot
         self.vcroid: pyvcroid2.VcRoid2 = vc
+        self.text_channel: discord.TextChannel = None
         self.voice_channel: discord.VoiceChannel = None
         self.voice_client: discord.VoiceClient = None
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.author.bot:  # bot自身のメッセージは何もしない
+        # not doing anything for self.
+        if message.author.bot:
             return
-        if Item.text_channel is None: # 初期設定
-            # text channel選択画面出す
-            text_channels = message.guild.text_channels
-            await message.channel.send(
-                "読み上げるテキストチャンネルを選んでください",
-                view=SelectTextChannel(text_channels=text_channels[:5])
-            )
 
-            # voice channel選択画面出す
-            voice_channels = message.guild.voice_channels
-            await message.channel.send(
-                "ボイスチャンネルを選んでください",
-                view=SelectVoiceChannel(voice_channels=voice_channels[:5])
-            )
-        else:
-            # ここに読み上げの処理を書く
-            if not self.voice_client:
-                self.voice_client = await Item.voice_channel.connect()
-            if message.channel == Item.text_channel:
-                # 喋っている途中は待つ
+        if message.content in ["!akarichan", "!akari"]:
+            if message.author.voice is None:
+                await message.channel.send("呼んだ人がボイスチャットにいないよ！")
+                return
+
+            if self.voice_client is None:
+                self.text_channel = message.channel
+                self.voice_client = await message.author.voice.channel.connect()
+                await asyncio.sleep(0.1)
+                self.play_sound("あかりちゃんだよー")
+                return
+
+            if self.voice_client.is_connected():
+                self.text_channel = message.channel
+                await self.voice_client.move_to(message.author.voice.channel)
+                return
+            else:
+                self.voice_client = None
+                self.text_channel = None
+
+        if message.content in ["!bye"]:
+            if self.voice_client is None:
+                return
+
+            if self.voice_client.is_connected():
+                self.play_sound("ばいばーい")
+                await asyncio.sleep(2)
+                self.voice_client.disconnect()
+                self.voice_client = None
+                self.text_channel = None
+                return
+
+        # play tts, when bot is connected to vc.
+        if self.voice_client is not None and self.voice_client.is_connected() is True:
+            if message.channel == self.text_channel:
+                # wait until finish playing when next sound is in queue.
                 while self.voice_client.is_playing():
                     await asyncio.sleep(0.1)
                 print(message.content)
                 source = discord.FFmpegPCMAudio(text2wav(self.vcroid, message.content))
                 self.voice_client.play(source)
+                self.play_sound(message.content)
+
+    def play_sound(self, content: str):
+        source = discord.FFmpegPCMAudio(text2wav(self.vcroid, content))
+        self.voice_channel.play(source)
 
     @commands.command()
     async def d(self, ctx: commands.Context):
