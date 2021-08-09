@@ -9,6 +9,7 @@ from discord.ext import commands
 from text2wav import text2wav
 import pyvcroid2
 
+
 class VoiceroidTTSBot(commands.Cog):
     def __init__(self, bot, vc):
         self.bot: commands.Bot = bot
@@ -41,7 +42,8 @@ class VoiceroidTTSBot(commands.Cog):
                 await asyncio.sleep(0.1)
 
             # if started with words specified in ignore.json
-            ignored_words_matched = [word for word in ignore.start_with if message.content.startswith(word)]
+            ignored_words_matched = [
+                word for word in ignore.start_with if message.content.startswith(word)]
             if len(ignored_words_matched) != 0:
                 return
 
@@ -57,7 +59,7 @@ class VoiceroidTTSBot(commands.Cog):
         self.voice_client.play(source)
 
     @commands.command()
-    async def akari(self, ctx: commands.Context, mode: str=None, *args):
+    async def akari(self, ctx: commands.Context, mode: str = None, *args):
         if mode is None:
             await self.join_voice(ctx)
             return
@@ -101,7 +103,7 @@ class VoiceroidTTSBot(commands.Cog):
 
     async def leave_voice(self, ctx: commands.Context):
         if self.voice_client is None:
-                return
+            return
 
         if self.voice_client.is_connected():
             if ctx.channel is not self.text_channel:
@@ -117,8 +119,10 @@ class VoiceroidTTSBot(commands.Cog):
     async def show_help(self, ctx: commands.Context):
         message: discord.Message = ctx.message
         embed = embeds.Embed(title="あかりちゃんのへるぷ！")
-        embed.add_field(name="参加してほしい時", value="ボイスチャットに参加して、読み上げてほしいチャンネルで`!akari`を送信してね！")
-        embed.add_field(name="帰ってほしい時 :sob:", value="`!akari bye`で帰るよ、悲しい :sob:")
+        embed.add_field(name="参加してほしい時",
+                        value="ボイスチャットに参加して、読み上げてほしいチャンネルで`!akari`を送信してね！")
+        embed.add_field(name="帰ってほしい時 :sob:",
+                        value="`!akari bye`で帰るよ、悲しい :sob:")
         await message.channel.send(embed=embed)
         return
 
@@ -141,11 +145,14 @@ class VoiceroidTTSBot(commands.Cog):
             await message.channel.send(f"ピッチを{value}にセットしたよ。")
             return
 
-        await message.channel.send("パラメータが正しくないよ")
+        await self.show_voiceparameters_help()
         return
 
     async def show_voiceparameters_help(self, ctx: commands.Context):
         message: discord.Message = ctx.message
-        embed = discord.Embed(title="パラメータコマンドのヘルプ！")
-        embed.add_field()
-
+        embed = discord.Embed(
+            title="パラメータコマンドのヘルプ", description=r"`!akari [v, voice] {設定項目} {値}`のように記載してね。")
+        embed.add_field(name="設定項目", value="ピッチは`p`、スピードは`s`だよ。")
+        embed.add_field(
+            name="値", value="値は設定項目によって取りうる範囲が決まってるよ。~~そんなに早く喋れないんだからね！~~")
+        await message.channel.send(embed=embed)
