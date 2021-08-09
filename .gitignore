@@ -1,3 +1,4 @@
 private.py
+launch.json
 *.wav
 __pycache__/
