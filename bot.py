@@ -119,10 +119,9 @@ class VoiceroidTTSBot(commands.Cog):
     async def show_help(self, ctx: commands.Context):
         message: discord.Message = ctx.message
         embed = embeds.Embed(title="あかりちゃんのへるぷ！")
-        embed.add_field(name="参加してほしい時",
-                        value="ボイスチャットに参加して、読み上げてほしいチャンネルで`!akari`を送信してね！")
-        embed.add_field(name="帰ってほしい時 :sob:",
-                        value="`!akari bye`で帰るよ、悲しい :sob:")
+        embed.add_field(name="参加してほしい時", value="ボイスチャットに参加して、読み上げてほしいチャンネルで`!akari`を送信してね！", inline=False)
+        embed.add_field(name="帰ってほしい時 :sob:", value="`!akari bye`で帰るよ、悲しい :sob:", inline=False)
+        embed.add_field(name="ボイスパラメータを変えたい時 :musical_note:", value="`!akari v {モード} {設定値}`を送信してね！\n詳しくは、`!akari v h`で見れるよ！", inline=False)
         await message.channel.send(embed=embed)
         return
 
@@ -145,14 +144,12 @@ class VoiceroidTTSBot(commands.Cog):
             await message.channel.send(f"ピッチを{value}にセットしたよ。")
             return
 
-        await self.show_voiceparameters_help()
+        await self.show_voiceparameters_help(ctx)
         return
 
     async def show_voiceparameters_help(self, ctx: commands.Context):
         message: discord.Message = ctx.message
-        embed = discord.Embed(
-            title="パラメータコマンドのヘルプ", description=r"`!akari [v, voice] {設定項目} {値}`のように記載してね。")
-        embed.add_field(name="設定項目", value="ピッチは`p`、スピードは`s`だよ。")
-        embed.add_field(
-            name="値", value="値は設定項目によって取りうる範囲が決まってるよ。~~そんなに早く喋れないんだからね！~~")
+        embed = discord.Embed(title="パラメータコマンドのへるぷ！", description="`!akari [v, voice] {設定項目} {値}`のように記載してね。")
+        embed.add_field(name="設定項目", value="ピッチは`p`、スピードは`s`だよ。\nデフォルトに戻したいときは`d`を指定してね。", inline=False)
+        embed.add_field(name="値", value="値は設定項目によって取りうる範囲が決まってるよ。\n~~そんなに早く喋れないんだからね！~~", inline=False)
         await message.channel.send(embed=embed)

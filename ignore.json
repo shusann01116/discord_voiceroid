@@ -1,7 +1,6 @@
 {
     "start_with": [
         "<",
-        "http",
-        "aho"
+        "http"
     ]
 }
