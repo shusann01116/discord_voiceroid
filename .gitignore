@@ -2,3 +2,4 @@ private.py
 launch.json
 *.wav
 __pycache__/
+.vscode
