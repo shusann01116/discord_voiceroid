@@ -1,5 +1,4 @@
 from discord import embeds
-from discord import message
 from discord.message import Message
 import discord
 import asyncio
@@ -54,38 +53,51 @@ class VoiceroidTTSBot(commands.Cog):
             print(message.content)
             self.play_sound(message.content)
 
+    # generate and play voice on vc
     def play_sound(self, content: str):
         source = discord.FFmpegPCMAudio(text2wav(self.vcroid, content))
         self.voice_client.play(source)
 
     @commands.command()
     async def akari(self, ctx: commands.Context, mode: str = None, *args):
+        # join to vc.
         if mode is None:
             await self.join_voice(ctx)
             return
 
+        # leave vc.
         if mode in ["b", "bye"]:
             await self.leave_voice(ctx)
             return
 
+        # show help.
         if mode in ["h", "help"]:
             await self.show_help(ctx)
             return
 
+        # change voice parameter.
         if mode in ["v", "voice"]:
-            if len(args) == 1:
-                args += (1.0,)
+            # show voice parameter help and return
+            # if arguments are not correct
+            # it represents default when 2nd parameter is d.
+            if len(args) != 2 and args.index(2) != 'd':
+                self.show_voiceparameters_help()
+                return
 
             await self.change_voiceparameters(ctx, *args)
             return
 
     async def join_voice(self, ctx: commands.Context):
         command_author: Message.author = ctx.author
+
+        # when summoner of bot is not in vc.
         if command_author.voice is None:
             message: discord.Message = ctx.message
-            await message.channel.send("呼んだ人がボイスチャットにいないよ！")
+            embed = discord.Embed(title="呼んだ人がボイスチャットにいないよ！")
+            await message.channel.send(embed=embed)
             return
 
+        # when bot's connection is not established.
         if self.voice_client is None:
             await self.show_help(ctx)
             self.text_channel = ctx.channel
@@ -93,10 +105,12 @@ class VoiceroidTTSBot(commands.Cog):
             self.play_sound("あかりちゃんだよー")
             return
 
+        # move to next chennel when connection is already established.
         if self.voice_client.is_connected():
             self.text_channel = ctx.channel
             await self.voice_client.move_to(ctx.author.voice.channel)
             return
+        # otherwise delete pointers of instances.
         else:
             self.voice_client = None
             self.text_channel = None
@@ -131,17 +145,20 @@ class VoiceroidTTSBot(commands.Cog):
         if param in ["d", "default"]:
             self.vcroid.param.speed = 1.0
             self.vcroid.param.pitch = 1.0
-            await message.channel.send("スピードとピッチをデフォルトに戻したよ。")
+            embed = discord.Embed(title="パラメータせってい", description="スピードとピッチをデフォルトに戻したよ。")
+            await message.channel.send(embed=embed)
             return
 
         if param in ["s", "speed"] and 0.5 <= value <= 4.0:
             self.vcroid.param.speed = value
-            await message.channel.send(f"スピードを{value}にセットしたよ。")
+            embed = discord.Embed(title="パラメータせってい", description=f"スピードを{value}にセットしたよ。")
+            await message.channel.send(embed=embed)
             return
 
         if param in ["p", "pitch"] and 0.5 <= value <= 2.0:
             self.vcroid.param.pitch = value
-            await message.channel.send(f"ピッチを{value}にセットしたよ。")
+            embed = discord.Embed(title="パラメータせってい", description=f"ピッチを{value}にセットしたよ。")
+            await message.channel.send(embed=embed)
             return
 
         await self.show_voiceparameters_help(ctx)
@@ -149,7 +166,9 @@ class VoiceroidTTSBot(commands.Cog):
 
     async def show_voiceparameters_help(self, ctx: commands.Context):
         message: discord.Message = ctx.message
-        embed = discord.Embed(title="パラメータコマンドのへるぷ！", description="`!akari [v, voice] {設定項目} {値}`のように記載してね。")
-        embed.add_field(name="設定項目", value="ピッチは`p`、スピードは`s`だよ。\nデフォルトに戻したいときは`d`を指定してね。", inline=False)
+        embed = discord.Embed(title="パラメータコマンドのへるぷ！", description="`!akari v {設定項目} {値}`のように記載してね。")
+        embed.add_field(name="設定項目", value="ピッチは`p`、スピードは`s`だよ。\nデフォルトに戻したいときは`d`を指定してね。\nスピードは0.5から4.0でピッチは0.5から2.0までだよ！", inline=False)
         embed.add_field(name="値", value="値は設定項目によって取りうる範囲が決まってるよ。\n~~そんなに早く喋れないんだからね！~~", inline=False)
+        embed.add_field(name="例", value="`!akari v s 1.2`\nデフォルトに戻したいときは`!akari v d`でできるよ！")
         await message.channel.send(embed=embed)
+        return

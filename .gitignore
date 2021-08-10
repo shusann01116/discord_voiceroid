@@ -3,3 +3,4 @@ launch.json
 *.wav
 __pycache__/
 .vscode
+start.bat
