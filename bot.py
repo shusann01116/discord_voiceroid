@@ -1,8 +1,11 @@
+from importlib.resources import contents
+from pickletools import unicodestring1
 from discord import VoiceChannel, embeds
 from discord.message import Message
 import discord
 import asyncio
 import ignore
+import re
 
 from discord.ext import commands
 from text2wav import text2wav
@@ -16,6 +19,7 @@ class VoiceroidTTSBot(commands.Cog):
         self.text_channel: discord.TextChannel = None
         self.voice_channel: discord.VoiceChannel = None
         self.voice_client: discord.VoiceClient = None
+        self.pattern = r'.*?(\U000.{5}).*'
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -39,6 +43,11 @@ class VoiceroidTTSBot(commands.Cog):
             # wait until finish playing sound when next sound is in queue.
             while self.voice_client.is_playing():
                 await asyncio.sleep(0.1)
+                
+            # encode content to shift_jis
+            message.content = message.content.encode('shift_jis', 'ignore').decode('shift_jis')
+            if len(message.content) == 0:
+                return
 
             # if started with words specified in ignore.json
             ignored_words_matched = [
