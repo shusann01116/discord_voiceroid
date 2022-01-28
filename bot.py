@@ -1,4 +1,4 @@
-from discord import embeds
+from discord import VoiceChannel, embeds
 from discord.message import Message
 import discord
 import asyncio
@@ -121,6 +121,11 @@ class VoiceroidTTSBot(commands.Cog):
 
         if self.voice_client.is_connected():
             if ctx.channel is not self.text_channel:
+                return
+            if ctx.author.voice is None:
+                message: discord.Message = ctx.message
+                embed = embeds.Embed(title="VCに参加してからばいばいしてね:sob:")
+                await message.channel.send(embed=embed)
                 return
 
             self.play_sound("ばいばーい")
