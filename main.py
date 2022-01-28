@@ -32,7 +32,7 @@ def main():
 
 def initializeVoiceRoid() -> VcRoid2:
     # voiceroid2 client
-    vc: VcRoid2 = pyvcroid2.VcRoid2()
+    vc: VcRoid2 = pyvcroid2.VcRoid2(install_path='F:\AHS\VOICEROID2' ,install_path_x86='F:\AHS\VOICEROID2')
     lang_list = vc.listLanguages()
     if "standard" in lang_list:
         vc.loadLanguage("standard")
