@@ -19,7 +19,6 @@ class VoiceroidTTSBot(commands.Cog):
         self.text_channel: discord.TextChannel = None
         self.voice_channel: discord.VoiceChannel = None
         self.voice_client: discord.VoiceClient = None
-        self.pattern = r'.*?(\U000.{5}).*'
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
