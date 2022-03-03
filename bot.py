@@ -1,14 +1,15 @@
 from importlib.resources import contents
 from pickletools import unicodestring1
+from tokenize import String
 from discord import VoiceChannel, embeds
 from discord.message import Message
 import discord
 import asyncio
 import dictionary
-
 from discord.ext import commands
 from text2wav import text2wav
 import pyvcroid2
+
 
 
 class VoiceroidTTSBot(commands.Cog):
@@ -85,22 +86,29 @@ class VoiceroidTTSBot(commands.Cog):
 
         # change voice parameter.
         if mode in ["v", "voice"]:
-            # show voice parameter help and return
-            # if arguments are not correct
-            # it represents default when 2nd parameter is d.
+            # show voice parameter help and return if arguments doesnt contain 2 parameters
+            # parameter 'd' represents default in 2nd parameter so it will be False in this statement
             if len(args) != 2 and args.index(2) != 'd':
-                self.show_voiceparameters_help()
+                self.show_voiceparameters_help(ctx)
                 return
 
             await self.change_voiceparameters(ctx, *args)
             return
 
+        # add to dictionary
+        # usage: !akari add <foo> <bar>
+        # result: input -> foo, output -> bar
         if mode in ["add"]:
-            # add to dic.txt
+            # this method require 2 arguments
+            if len(args) != 2:
+                return
+            
+            await self.add_to_dictionary(ctx, *args)
             return
 
-        if mode in ["rm"]:
-            # remove from dic.txt
+        # remove from dictionary
+        if mode in ["rm", "remove"]:
+            await self.remove_from_dictionary(ctx, *args)
             return
 
     async def join_voice(self, ctx: commands.Context):
@@ -204,11 +212,10 @@ class VoiceroidTTSBot(commands.Cog):
         await message.channel.send(embed=embed)
         return
 
-    async def add_to_dictionary(self, ctx: commands.Context):
-        # add to selfcontained dictionary member
-        # save to file
+    async def add_to_dictionary(self, ctx: commands.Context, key: String, value: String):
+        dictionary.add(key, value)
         return
 
-    async def remove_from_dictionary(self, ctx: commands.Context):
-        # remove from dict
+    async def remove_from_dictionary(self, ctx: commands.Context, key: String):
+        dictionary.remove(key)
         return

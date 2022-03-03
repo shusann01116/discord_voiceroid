@@ -13,13 +13,21 @@ if os.path.exists(path) is False:
 with open(path) as f:
     dic: dict = json.load(f)
     
-word_set: dict[dict[str, str]] = dic.get("word_set")
+word_set: dict = dic.get("word_set")
 
 with open(path) as f:
     dic: dict = json.load(f)
 
 def add(key: String, value: String) -> String:
+    word_set[key] = value
+    
+    with open(path, mode='w') as f:
+        json.dump(word_set, f, indent=4)
     return
 
 def remove(key: String):
+    del word_set[key]
+    
+    with open(path, mode='w') as f:
+        json.dump(word_set, f, indent=4)
     return
