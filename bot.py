@@ -1,15 +1,15 @@
 from importlib.resources import contents
 from pickletools import unicodestring1
+from tokenize import String
 from discord import VoiceChannel, embeds
 from discord.message import Message
 import discord
 import asyncio
-import ignore
-import re
-
+import dictionary
 from discord.ext import commands
 from text2wav import text2wav
 import pyvcroid2
+import re
 
 
 class VoiceroidTTSBot(commands.Cog):
@@ -42,21 +42,21 @@ class VoiceroidTTSBot(commands.Cog):
             # wait until finish playing sound when next sound is in queue.
             while self.voice_client.is_playing():
                 await asyncio.sleep(0.1)
-                
+
             # encode content to shift_jis
-            message.content = message.content.encode('shift_jis', 'ignore').decode('shift_jis')
+            message.content = message.content.encode(
+                'shift_jis', 'ignore').decode('shift_jis')
             if len(message.content) == 0:
                 return
 
-            # if started with words specified in ignore.json
-            ignored_words_matched = [
-                word for word in ignore.start_with if message.content.startswith(word)]
-            if len(ignored_words_matched) != 0:
-                return
+            # find if there are mathced assigned words to dictionary the message
+            for key in dictionary.word_set.keys():
+                message.content = message.content.replace(key, dictionary.word_set[key])
 
-            # find and replace specific letters which occurre encoding error.
-            if message.content.find("～") != -1:
-                message.content = message.content.replace("～", "ー")
+            # ignore message contained in ignore list
+            for str in dictionary.start_with:
+                if message.content.startswith(str):
+                    return
 
             print(message.content)
             self.play_sound(message.content)
@@ -85,14 +85,29 @@ class VoiceroidTTSBot(commands.Cog):
 
         # change voice parameter.
         if mode in ["v", "voice"]:
-            # show voice parameter help and return
-            # if arguments are not correct
-            # it represents default when 2nd parameter is d.
+            # show voice parameter help and return if arguments doesnt contain 2 parameters
+            # parameter 'd' represents default in 2nd parameter so it will be False in this statement
             if len(args) != 2 and args.index(2) != 'd':
-                self.show_voiceparameters_help()
+                self.show_voiceparameters_help(ctx)
                 return
 
             await self.change_voiceparameters(ctx, *args)
+            return
+
+        # add to dictionary
+        # usage: !akari add <foo> <bar>
+        # result: input -> foo, output -> bar
+        if mode in ["add"]:
+            # this method require 2 arguments
+            if len(args) != 2:
+                return
+
+            await self.add_to_dictionary(ctx, *args)
+            return
+
+        # remove from dictionary
+        if mode in ["rm", "remove"]:
+            await self.remove_from_dictionary(ctx, *args)
             return
 
     async def join_voice(self, ctx: commands.Context):
@@ -105,7 +120,7 @@ class VoiceroidTTSBot(commands.Cog):
             await message.channel.send(embed=embed)
             return
 
-        # when bot's connection is not established.
+        # initialize bot when bot's connection is not established.
         if self.voice_client is None:
             await self.show_help(ctx)
             self.text_channel = ctx.channel
@@ -146,9 +161,12 @@ class VoiceroidTTSBot(commands.Cog):
     async def show_help(self, ctx: commands.Context):
         message: discord.Message = ctx.message
         embed = embeds.Embed(title="あかりちゃんのへるぷ！")
-        embed.add_field(name="参加してほしい時", value="ボイスチャットに参加して、読み上げてほしいチャンネルで`!akari`を送信してね！", inline=False)
-        embed.add_field(name="帰ってほしい時 :sob:", value="`!akari bye`で帰るよ、悲しい :sob:", inline=False)
-        embed.add_field(name="ボイスパラメータを変えたい時 :musical_note:", value="`!akari v {モード} {設定値}`を送信してね！\n詳しくは、`!akari v h`で見れるよ！", inline=False)
+        embed.add_field(
+            name="参加してほしい時", value="ボイスチャットに参加して、読み上げてほしいチャンネルで`!akari`を送信してね！", inline=False)
+        embed.add_field(name="帰ってほしい時 :sob:",
+                        value="`!akari bye`で帰るよ、悲しい :sob:", inline=False)
+        embed.add_field(name="ボイスパラメータを変えたい時 :musical_note:",
+                        value="`!akari v {モード} {設定値}`を送信してね！\n詳しくは、`!akari v h`で見れるよ！", inline=False)
         await message.channel.send(embed=embed)
         return
 
@@ -158,19 +176,22 @@ class VoiceroidTTSBot(commands.Cog):
         if param in ["d", "default"]:
             self.vcroid.param.speed = 1.0
             self.vcroid.param.pitch = 1.0
-            embed = discord.Embed(title="パラメータせってい", description="スピードとピッチをデフォルトに戻したよ。")
+            embed = discord.Embed(
+                title="パラメータせってい", description="スピードとピッチをデフォルトに戻したよ。")
             await message.channel.send(embed=embed)
             return
 
         if param in ["s", "speed"] and 0.5 <= value <= 4.0:
             self.vcroid.param.speed = value
-            embed = discord.Embed(title="パラメータせってい", description=f"スピードを{value}にセットしたよ。")
+            embed = discord.Embed(
+                title="パラメータせってい", description=f"スピードを{value}にセットしたよ。")
             await message.channel.send(embed=embed)
             return
 
         if param in ["p", "pitch"] and 0.5 <= value <= 2.0:
             self.vcroid.param.pitch = value
-            embed = discord.Embed(title="パラメータせってい", description=f"ピッチを{value}にセットしたよ。")
+            embed = discord.Embed(
+                title="パラメータせってい", description=f"ピッチを{value}にセットしたよ。")
             await message.channel.send(embed=embed)
             return
 
@@ -179,9 +200,21 @@ class VoiceroidTTSBot(commands.Cog):
 
     async def show_voiceparameters_help(self, ctx: commands.Context):
         message: discord.Message = ctx.message
-        embed = discord.Embed(title="パラメータコマンドのへるぷ！", description="`!akari v {設定項目} {値}`のように記載してね。")
-        embed.add_field(name="設定項目", value="ピッチは`p`、スピードは`s`だよ。\nデフォルトに戻したいときは`d`を指定してね。\nスピードは0.5から4.0でピッチは0.5から2.0までだよ！", inline=False)
-        embed.add_field(name="値", value="値は設定項目によって取りうる範囲が決まってるよ。\n~~そんなに早く喋れないんだからね！~~", inline=False)
-        embed.add_field(name="例", value="`!akari v s 1.2`\nデフォルトに戻したいときは`!akari v d`でできるよ！")
+        embed = discord.Embed(title="パラメータコマンドのへるぷ！",
+                              description="`!akari v {設定項目} {値}`のように記載してね。")
+        embed.add_field(
+            name="設定項目", value="ピッチは`p`、スピードは`s`だよ。\nデフォルトに戻したいときは`d`を指定してね。\nスピードは0.5から4.0でピッチは0.5から2.0までだよ！", inline=False)
+        embed.add_field(
+            name="値", value="値は設定項目によって取りうる範囲が決まってるよ。\n~~そんなに早く喋れないんだからね！~~", inline=False)
+        embed.add_field(
+            name="例", value="`!akari v s 1.2`\nデフォルトに戻したいときは`!akari v d`でできるよ！")
         await message.channel.send(embed=embed)
+        return
+
+    async def add_to_dictionary(self, ctx: commands.Context, key: String, value: String):
+        dictionary.add(key, value)
+        return
+
+    async def remove_from_dictionary(self, ctx: commands.Context, key: String):
+        dictionary.remove(key)
         return
