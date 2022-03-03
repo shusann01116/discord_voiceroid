@@ -1,5 +1,11 @@
 {
-    "sample": "\u30b5\u30f3\u30d7\u30eb",
-    "sample2": "\u30b5\u30f3\u30d7\u30eb2",
-    "ahoy": "\u304a\u3070\u304b\u304c\u5165\u5ba4\u3057\u307e\u3057\u305f"
+    "word_set": {
+        "sample": "\u30b5\u30f3\u30d7\u30eb",
+        "sample2": "\u30b5\u30f3\u30d7\u30eb2",
+        "ahoy": "\u304a\u3070\u304b\u304c\u5165\u5ba4\u3057\u307e\u3057\u305f",
+        "SEKIRO": "\u305b\u304d\u308d"
+        },
+    "ignore": {
+        "start_with": ["<", "@"]
+    }
 }

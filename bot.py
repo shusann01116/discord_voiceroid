@@ -9,7 +9,7 @@ import dictionary
 from discord.ext import commands
 from text2wav import text2wav
 import pyvcroid2
-
+import re
 
 
 class VoiceroidTTSBot(commands.Cog):
@@ -51,13 +51,12 @@ class VoiceroidTTSBot(commands.Cog):
 
             # find if there are mathced assigned words to dictionary the message
             for key in dictionary.word_set.keys():
-                if key == message.content:
-                    message.content = dictionary.word_set[message.content]
-                    break
+                message.content = message.content.replace(key, dictionary.word_set[key])
 
-            # find and replace specific letters which occurre encoding error.
-            if message.content.find("～") != -1:
-                message.content = message.content.replace("～", "ー")
+            # ignore message contained in ignore list
+            for str in dictionary.start_with:
+                if message.content.startswith(str):
+                    return
 
             print(message.content)
             self.play_sound(message.content)
@@ -102,7 +101,7 @@ class VoiceroidTTSBot(commands.Cog):
             # this method require 2 arguments
             if len(args) != 2:
                 return
-            
+
             await self.add_to_dictionary(ctx, *args)
             return
 
