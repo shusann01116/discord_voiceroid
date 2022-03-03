@@ -19,9 +19,10 @@ start_with: dict = ignore["start_with"]
 
 def add(key: String, value: String) -> String:
     word_set[key] = value
+    dic["word_set"] = word_set
 
     with open(path, mode='w') as f:
-        json.dump(word_set, f, indent=4)
+        json.dump(dic, f, indent=4)
     return
 
 
@@ -30,5 +31,5 @@ def remove(key: String):
     dic["word_set"] = word_set
 
     with open(path, mode='w') as f:
-        json.dump(word_set, f, indent=4)
+        json.dump(dic, f, indent=4)
     return
