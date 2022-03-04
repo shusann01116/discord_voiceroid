@@ -1,3 +1,4 @@
+from dis import dis
 from importlib.resources import contents
 from pickletools import unicodestring1
 from tokenize import String
@@ -9,7 +10,6 @@ import dictionary
 from discord.ext import commands
 from text2wav import text2wav
 import pyvcroid2
-import re
 
 
 class VoiceroidTTSBot(commands.Cog):
@@ -51,7 +51,8 @@ class VoiceroidTTSBot(commands.Cog):
 
             # find if there are mathced assigned words to dictionary the message
             for key in dictionary.word_set.keys():
-                message.content = message.content.replace(key, dictionary.word_set[key])
+                message.content = message.content.replace(
+                    key, dictionary.word_set[key])
 
             # ignore message contained in ignore list
             for str in dictionary.start_with:
@@ -167,6 +168,8 @@ class VoiceroidTTSBot(commands.Cog):
                         value="`!akari bye`で帰るよ、悲しい :sob:", inline=False)
         embed.add_field(name="ボイスパラメータを変えたい時 :musical_note:",
                         value="`!akari v {モード} {設定値}`を送信してね！\n詳しくは、`!akari v h`で見れるよ！", inline=False)
+        embed.add_field(name="単語を覚えさせたい時と忘れさせたい時は",
+                        value="`!akari add {単語} {読み}`と`!akari rm {単語} {読み}`を送信してね！\n", inline=False)
         await message.channel.send(embed=embed)
         return
 
