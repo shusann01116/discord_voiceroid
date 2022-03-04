@@ -1,8 +1,5 @@
-from dis import dis
-from importlib.resources import contents
-from pickletools import unicodestring1
 from tokenize import String
-from discord import VoiceChannel, embeds
+from discord import embeds
 from discord.message import Message
 import discord
 import asyncio
@@ -109,6 +106,11 @@ class VoiceroidTTSBot(commands.Cog):
         # remove from dictionary
         if mode in ["rm", "remove"]:
             await self.remove_from_dictionary(ctx, *args)
+            return
+
+        # list dictionary words.
+        if mode in ["ls"]:
+            await self.list_dictionary(ctx, *args)
             return
 
     async def join_voice(self, ctx: commands.Context):
@@ -220,4 +222,16 @@ class VoiceroidTTSBot(commands.Cog):
 
     async def remove_from_dictionary(self, ctx: commands.Context, key: String):
         dictionary.remove(key)
+        return
+
+    async def list_dictionary(self, ctx: commands.Context):
+        words = ""
+        for word in dictionary.word_set:
+            words += f"{word}, "
+
+        message: discord.Message = ctx.message
+        embed = discord.Embed(
+            title="単語リスト",
+            description=f"{words}")
+        await message.channel.send(embed=embed)
         return
