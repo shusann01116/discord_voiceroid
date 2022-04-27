@@ -4,4 +4,5 @@ launch.json
 __pycache__/
 .vscode
 start.bat
+start.ps1
 .venv
