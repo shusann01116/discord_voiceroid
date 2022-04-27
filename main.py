@@ -2,6 +2,7 @@ import asyncio
 import discord
 from discord.ext import commands
 import pyvcroid2
+import time
 
 import private
 
@@ -81,6 +82,7 @@ class Akari(commands.Cog):
             await asyncio.sleep(0.1)
 
         self.voice_client.play(source)
+        print(f"[{time.strftime('%H:%M:%S')}]\t{msg.content}")
 
     @commands.command()
     async def akari(self, ctx: commands.Context):
